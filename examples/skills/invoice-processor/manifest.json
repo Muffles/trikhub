@@ -1,0 +1,75 @@
+{
+  "id": "invoice-processor",
+  "name": "Invoice Processor",
+  "description": "Extracts structured data from invoice text using AI",
+  "version": "1.0.0",
+
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "invoiceText": {
+        "type": "string",
+        "description": "The raw text content of the invoice"
+      }
+    },
+    "required": ["invoiceText"]
+  },
+
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "invoiceId": {
+        "type": "string",
+        "description": "The invoice identifier"
+      },
+      "vendor": {
+        "type": "string",
+        "description": "The vendor/seller name"
+      },
+      "amount": {
+        "type": "number",
+        "description": "The total amount"
+      },
+      "currency": {
+        "type": "string",
+        "description": "The currency code (e.g., USD, EUR)"
+      },
+      "date": {
+        "type": "string",
+        "description": "The invoice date"
+      },
+      "lineItems": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "description": { "type": "string" },
+            "quantity": { "type": "number" },
+            "unitPrice": { "type": "number" },
+            "total": { "type": "number" }
+          }
+        }
+      }
+    },
+    "required": ["invoiceId", "vendor", "amount", "currency"]
+  },
+
+  "capabilities": {
+    "tools": [],
+    "canRequestClarification": true
+  },
+
+  "limits": {
+    "maxExecutionTimeMs": 30000,
+    "maxLlmCalls": 5,
+    "maxToolCalls": 10
+  },
+
+  "entry": {
+    "module": "./graph.js",
+    "export": "default"
+  },
+
+  "author": "saaas-poc",
+  "license": "MIT"
+}

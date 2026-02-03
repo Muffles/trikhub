@@ -1,0 +1,24 @@
+{
+  "name": "@saaas-poc/examples",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist *.tsbuildinfo skills/*/dist skills/*/*.tsbuildinfo",
+    "local-demo": "node --import tsx local-demo/demo.ts",
+    "remote:server": "node --import tsx remote-demo/server.ts",
+    "remote:client": "node --import tsx remote-demo/client.ts"
+  },
+  "dependencies": {
+    "@saaas-poc/skill-gateway": "workspace:*",
+    "@saaas-poc/skill-host": "workspace:*",
+    "@saaas-poc/skill-manifest": "workspace:*",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0"
+  }
+}

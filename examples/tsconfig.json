@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "noEmit": false
+  },
+  "include": [
+    "local-demo/**/*",
+    "remote-demo/**/*",
+    "skills/**/*"
+  ],
+  "references": [
+    { "path": "../packages/skill-manifest" },
+    { "path": "../packages/skill-gateway" },
+    { "path": "../packages/skill-host" }
+  ]
+}

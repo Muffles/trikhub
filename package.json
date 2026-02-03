@@ -1,0 +1,19 @@
+{
+  "name": "saaas-poc",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf packages/*/dist packages/*/*.tsbuildinfo examples/dist examples/*.tsbuildinfo",
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint:skill": "node packages/skill-linter/dist/cli.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^3.2.0"
+  }
+}

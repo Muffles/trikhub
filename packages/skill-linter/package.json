@@ -1,0 +1,24 @@
+{
+  "name": "@saaas-poc/skill-linter",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "skill-lint": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@saaas-poc/skill-manifest": "workspace:*",
+    "typescript": "^5.5.0"
+  }
+}
