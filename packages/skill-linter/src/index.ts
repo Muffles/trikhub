@@ -10,4 +10,13 @@ export {
   checkUndeclaredTools,
   checkProcessEnvAccess,
   findToolUsage,
+  // V2 rules
+  ALLOWED_AGENT_STRING_FORMATS,
+  schemaHasNoUnconstrainedStrings,
+  checkNoFreeStringsInAgentData,
+  extractTemplatePlaceholders,
+  getSchemaFieldNames,
+  checkTemplateFieldsExist,
+  checkHasResponseTemplates,
+  checkDefaultTemplateRecommended,
 } from './rules.js';

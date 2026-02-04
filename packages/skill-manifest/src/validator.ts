@@ -6,45 +6,52 @@ import type { SkillManifest, JSONSchema } from './types.js';
 const ajv = new Ajv.default({ allErrors: true, strict: false });
 
 /**
- * JSON Schema for validating SkillManifest
+ * Common properties shared by V1 and V2 manifests
  */
-const manifestSchema: JSONSchema = {
+const commonManifestProperties = {
+  id: { type: 'string', minLength: 1 },
+  name: { type: 'string', minLength: 1 },
+  description: { type: 'string' },
+  version: { type: 'string', pattern: '^\\d+\\.\\d+\\.\\d+' },
+  capabilities: {
+    type: 'object',
+    properties: {
+      tools: { type: 'array', items: { type: 'string' } },
+      canRequestClarification: { type: 'boolean' },
+    },
+    required: ['tools', 'canRequestClarification'],
+  },
+  limits: {
+    type: 'object',
+    properties: {
+      maxExecutionTimeMs: { type: 'number', minimum: 0 },
+      maxLlmCalls: { type: 'number', minimum: 0 },
+      maxToolCalls: { type: 'number', minimum: 0 },
+    },
+    required: ['maxExecutionTimeMs', 'maxLlmCalls', 'maxToolCalls'],
+  },
+  entry: {
+    type: 'object',
+    properties: {
+      module: { type: 'string', minLength: 1 },
+      export: { type: 'string', minLength: 1 },
+    },
+    required: ['module', 'export'],
+  },
+  author: { type: 'string' },
+  repository: { type: 'string' },
+  license: { type: 'string' },
+};
+
+/**
+ * JSON Schema for validating V1 SkillManifest
+ */
+const manifestSchemaV1: JSONSchema = {
   type: 'object',
   properties: {
-    id: { type: 'string', minLength: 1 },
-    name: { type: 'string', minLength: 1 },
-    description: { type: 'string' },
-    version: { type: 'string', pattern: '^\\d+\\.\\d+\\.\\d+' },
+    ...commonManifestProperties,
     inputSchema: { type: 'object' },
     outputSchema: { type: 'object' },
-    capabilities: {
-      type: 'object',
-      properties: {
-        tools: { type: 'array', items: { type: 'string' } },
-        canRequestClarification: { type: 'boolean' },
-      },
-      required: ['tools', 'canRequestClarification'],
-    },
-    limits: {
-      type: 'object',
-      properties: {
-        maxExecutionTimeMs: { type: 'number', minimum: 0 },
-        maxLlmCalls: { type: 'number', minimum: 0 },
-        maxToolCalls: { type: 'number', minimum: 0 },
-      },
-      required: ['maxExecutionTimeMs', 'maxLlmCalls', 'maxToolCalls'],
-    },
-    entry: {
-      type: 'object',
-      properties: {
-        module: { type: 'string', minLength: 1 },
-        export: { type: 'string', minLength: 1 },
-      },
-      required: ['module', 'export'],
-    },
-    author: { type: 'string' },
-    repository: { type: 'string' },
-    license: { type: 'string' },
   },
   required: [
     'id',
@@ -57,6 +64,56 @@ const manifestSchema: JSONSchema = {
     'limits',
     'entry',
   ],
+};
+
+/**
+ * JSON Schema for validating V2 SkillManifest with actions
+ */
+const manifestSchemaV2: JSONSchema = {
+  type: 'object',
+  properties: {
+    ...commonManifestProperties,
+    actions: {
+      type: 'object',
+      additionalProperties: {
+        type: 'object',
+        properties: {
+          inputSchema: { type: 'object' },
+          agentDataSchema: { type: 'object' },
+          userContentSchema: { type: 'object' },
+          responseTemplates: {
+            type: 'object',
+            additionalProperties: {
+              type: 'object',
+              properties: {
+                text: { type: 'string' },
+              },
+              required: ['text'],
+            },
+          },
+        },
+        required: ['inputSchema', 'agentDataSchema', 'responseTemplates'],
+      },
+      minProperties: 1,
+    },
+  },
+  required: [
+    'id',
+    'name',
+    'description',
+    'version',
+    'actions',
+    'capabilities',
+    'limits',
+    'entry',
+  ],
+};
+
+/**
+ * Combined schema that accepts either V1 or V2 manifests
+ */
+const manifestSchema: JSONSchema = {
+  anyOf: [manifestSchemaV1, manifestSchemaV2],
 };
 
 const validateManifestSchema = ajv.compile(manifestSchema);

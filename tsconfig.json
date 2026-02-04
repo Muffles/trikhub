@@ -3,8 +3,7 @@
   "references": [
     { "path": "packages/skill-manifest" },
     { "path": "packages/skill-gateway" },
-    { "path": "packages/skill-host" },
     { "path": "packages/skill-linter" },
-    { "path": "examples" }
+    { "path": "demo2" }
   ]
 }

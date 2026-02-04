@@ -1,0 +1,25 @@
+{
+  "name": "@saaas-poc/demo2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "demo": "node --import tsx cli.ts",
+    "demo:debug": "DEBUG=true node --import tsx cli.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@saaas-poc/skill-gateway": "workspace:*",
+    "@saaas-poc/skill-manifest": "workspace:*",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "dotenv": "^16.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.0"
+  }
+}

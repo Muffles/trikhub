@@ -1,13 +1,23 @@
 import { readFile } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import ts from 'typescript';
-import { type SkillManifest, validateManifest } from '@saaas-poc/skill-manifest';
+import {
+  type SkillManifest,
+  type SkillManifestV2,
+  validateManifest,
+  isManifestV2,
+} from '@saaas-poc/skill-manifest';
 import {
   type LintResult,
   checkForbiddenImports,
   checkDynamicCodeExecution,
   checkUndeclaredTools,
   checkProcessEnvAccess,
+  // V2 rules
+  checkNoFreeStringsInAgentData,
+  checkTemplateFieldsExist,
+  checkHasResponseTemplates,
+  checkDefaultTemplateRecommended,
 } from './rules.js';
 
 /**
@@ -40,19 +50,23 @@ export class SkillLinter {
   }
 
   /**
-   * Load and parse the manifest
+   * Load and parse the manifest (V1 or V2)
    */
-  private async loadManifest(skillPath: string): Promise<SkillManifest> {
+  private async loadManifest(skillPath: string): Promise<SkillManifest | SkillManifestV2> {
     const manifestPath = join(skillPath, 'manifest.json');
     const content = await readFile(manifestPath, 'utf-8');
     const data = JSON.parse(content);
 
-    const validation = validateManifest(data);
-    if (!validation.valid) {
-      throw new Error(`Invalid manifest: ${validation.errors?.join(', ')}`);
+    // V2 manifests have 'actions' instead of 'inputSchema'/'outputSchema'
+    // Skip standard validation for V2 - we validate differently
+    if (!isManifestV2(data)) {
+      const validation = validateManifest(data);
+      if (!validation.valid) {
+        throw new Error(`Invalid manifest: ${validation.errors?.join(', ')}`);
+      }
     }
 
-    return data as SkillManifest;
+    return data as SkillManifest | SkillManifestV2;
   }
 
   /**
@@ -83,13 +97,14 @@ export class SkillLinter {
   }
 
   /**
-   * Lint a skill
+   * Lint a skill (V1 or V2)
    */
   async lint(skillPath: string): Promise<LintResult[]> {
     const results: LintResult[] = [];
+    const manifestPath = join(skillPath, 'manifest.json');
 
     // 1. Load and validate manifest
-    let manifest: SkillManifest;
+    let manifest: SkillManifest | SkillManifestV2;
     try {
       manifest = await this.loadManifest(skillPath);
     } catch (error) {
@@ -97,14 +112,19 @@ export class SkillLinter {
         rule: 'valid-manifest',
         severity: 'error',
         message: error instanceof Error ? error.message : 'Failed to load manifest',
-        file: join(skillPath, 'manifest.json'),
+        file: manifestPath,
       });
       return results;
     }
 
-    // 2. Check manifest completeness
-    if (!this.shouldSkipRule('manifest-completeness')) {
-      results.push(...this.checkManifestCompleteness(manifest, skillPath));
+    // 2. Check if V2 manifest and apply V2-specific rules
+    if (isManifestV2(manifest)) {
+      results.push(...this.lintV2Manifest(manifest, manifestPath));
+    } else {
+      // V1: Check manifest completeness
+      if (!this.shouldSkipRule('manifest-completeness')) {
+        results.push(...this.checkManifestCompleteness(manifest, skillPath));
+      }
     }
 
     // 3. Find and analyze source files
@@ -164,6 +184,35 @@ export class SkillLinter {
           result.severity = 'error';
         }
       }
+    }
+
+    return results;
+  }
+
+  /**
+   * Lint a V2 manifest with privilege separation rules
+   */
+  private lintV2Manifest(manifest: SkillManifestV2, manifestPath: string): LintResult[] {
+    const results: LintResult[] = [];
+
+    // Core security rule: no free-form strings in agentDataSchema
+    if (!this.shouldSkipRule('no-free-strings-in-agent-data')) {
+      results.push(...checkNoFreeStringsInAgentData(manifest, manifestPath));
+    }
+
+    // Validate template placeholders reference real fields
+    if (!this.shouldSkipRule('template-fields-exist')) {
+      results.push(...checkTemplateFieldsExist(manifest, manifestPath));
+    }
+
+    // Ensure actions have response templates
+    if (!this.shouldSkipRule('has-response-templates')) {
+      results.push(...checkHasResponseTemplates(manifest, manifestPath));
+    }
+
+    // Recommend having a default/success template
+    if (!this.shouldSkipRule('default-template-recommended')) {
+      results.push(...checkDefaultTemplateRecommended(manifest, manifestPath));
     }
 
     return results;

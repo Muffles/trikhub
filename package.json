@@ -9,7 +9,8 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint:skill": "node packages/skill-linter/dist/cli.js"
+    "lint:skill": "node packages/skill-linter/dist/cli.js",
+    "demo:agent-v2": "pnpm -C examples run agent:v2-demo"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
